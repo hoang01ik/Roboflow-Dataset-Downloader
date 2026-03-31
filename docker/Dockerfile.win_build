@@ -1,0 +1,18 @@
+# Build Environment Dockerfile (Windows .exe via Wine)
+FROM cdrx/pyinstaller-windows:python3 AS builder
+
+WORKDIR /src
+COPY src/requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY src/ .
+
+# Build the Windows executable
+RUN pyinstaller --noconfirm --onefile --windowed \
+    --name "Roboflow_Downloader_Win" \
+    --add-data "config.json;." \
+    main.py
+
+# Export stage (use with --output=dist)
+FROM scratch
+COPY --from=builder /src/dist/Roboflow_Downloader_Win.exe /

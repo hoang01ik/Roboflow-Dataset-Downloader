@@ -1,0 +1,27 @@
+# Build Environment Dockerfile (Linux Binary)
+FROM python:3.10-slim AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    binutils \
+    python3-tk \
+    tk-dev \
+    libx11-6 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY src/requirements.txt .
+RUN pip install --no-cache-dir pyinstaller && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY src/ .
+
+# Build the Linux binary
+RUN pyinstaller --noconfirm --onefile --windowed \
+    --name "roboflow-downloader-linux" \
+    --add-data "config.json:." \
+    main.py
+
+# Export stage (use with --output=dist)
+FROM scratch
+COPY --from=builder /app/dist/roboflow-downloader-linux /

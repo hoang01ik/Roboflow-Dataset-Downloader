@@ -1,0 +1,5 @@
+customtkinter
+roboflow
+Pillow
+darkdetect
+python-dotenv

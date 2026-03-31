@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+dist/
+build/
+*.spec
+
+# Roboflow Creds
+src/config.json
+*.json
+
+# Data
+datasets/
+
+# Docker build artifacts
+dist-linux/
+dist-win/
