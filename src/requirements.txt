@@ -1,5 +1,7 @@
 customtkinter
 roboflow
-Pillow
-darkdetect
+# Pin versions for Python 3.7 compatibility if building via Docker
+Pillow<10.0.0
+numpy<1.22.0
 python-dotenv
+darkdetect

@@ -1,6 +1,5 @@
 import threading
 import json
-import os
 import customtkinter as ctk
 from tkinter import messagebox
 from datetime import datetime
@@ -14,7 +13,43 @@ ACCENT_HOVER = "#27ae60"
 TEXT_PRIMARY = "#f8f9fa"
 TEXT_MUTED = "#9ca3af"
 
-CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.json")
+import os
+import sys
+import json
+import base64
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(os.path.dirname(__file__))
+    return os.path.join(base_path, relative_path)
+
+# Professional Config Path: %LOCALAPPDATA%/HPI_AI_Core/RoboflowDownloader/config.bin
+def get_config_path():
+    if sys.platform == "win32":
+        base = os.getenv("LOCALAPPDATA", os.path.expanduser("~"))
+    else:
+        base = os.path.expanduser("~/.config")
+    
+    config_dir = os.path.join(base, "HPI_AI_Core", "RoboflowDownloader")
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir, exist_ok=True)
+    return os.path.join(config_dir, "config.bin")
+
+CONFIG_FILE = get_config_path()
+
+def encrypt_data(data_str):
+    """Simple obfuscation using Base64."""
+    return base64.b64encode(data_str.encode()).decode()
+
+def decrypt_data(enc_str):
+    """Decode simple Base64 obfuscation."""
+    try:
+        return base64.b64decode(enc_str.encode()).decode()
+    except:
+        return ""
 
 class RoboflowApp(ctk.CTk):
     def __init__(self):
@@ -35,7 +70,7 @@ class RoboflowApp(ctk.CTk):
         self._create_log_area()
         self._create_download_button()
         
-        # Load saved credentials
+        # Load encrypted credentials from User AppData
         self._load_config()
 
     def _load_config(self):
@@ -44,22 +79,24 @@ class RoboflowApp(ctk.CTk):
                 with open(CONFIG_FILE, "r") as f:
                     data = json.load(f)
                     if "api_key" in data:
-                        self.api_entry.insert(0, data["api_key"])
+                        api_key = decrypt_data(data["api_key"])
+                        self.api_entry.insert(0, api_key)
                     if "workspace_id" in data:
-                        self.workspace_entry.insert(0, data["workspace_id"])
+                        workspace_id = decrypt_data(data["workspace_id"])
+                        self.workspace_entry.insert(0, workspace_id)
             except Exception as e:
-                self.update_log(f"Error loading config: {e}")
+                self.update_log(f"Error loading credentials: {e}")
 
     def _save_config(self):
         try:
             data = {
-                "api_key": self.api_entry.get(),
-                "workspace_id": self.workspace_entry.get()
+                "api_key": encrypt_data(self.api_entry.get()),
+                "workspace_id": encrypt_data(self.workspace_entry.get())
             }
             with open(CONFIG_FILE, "w") as f:
                 json.dump(data, f)
         except Exception as e:
-            self.update_log(f"Error saving config: {e}")
+            self.update_log(f"Error securing credentials: {e}")
 
     def _setup_layout(self):
         self.grid_columnconfigure(0, weight=1)
@@ -77,7 +114,7 @@ class RoboflowApp(ctk.CTk):
         self.label.pack(side="top", anchor="w")
         
         self.subtitle = ctk.CTkLabel(
-            header_frame, text="Dataset Acquisition System v2.4", 
+            header_frame, text="Dataset Acquisition System v2.8.0", 
             font=ctk.CTkFont(size=12),
             text_color=TEXT_MUTED
         )
@@ -246,7 +283,7 @@ class RoboflowApp(ctk.CTk):
         
         about_text = (
             "TRAFFIC ROBOFLOW DOWNLOADER\n"
-            "Autonomous Data Module v0.1\n\n"
+            "Autonomous Data Module v2.7.2\n\n"
             "Designed for AI Traffic Systems.\n"
             "Engineered with CustomTkinter.\n\n"
             "© 2026 HPI AI Core."

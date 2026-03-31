@@ -3,14 +3,18 @@ FROM cdrx/pyinstaller-windows:python3 AS builder
 
 WORKDIR /src
 COPY src/requirements.txt .
-RUN pip install -r requirements.txt
+
+# Update pip and system tools for compatibility
+RUN python -m pip install --upgrade pip setuptools wheel
+
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ .
 
 # Build the Windows executable
 RUN pyinstaller --noconfirm --onefile --windowed \
     --name "Roboflow_Downloader_Win" \
-    --add-data "config.json;." \
+    --add-data "c:/Python37/lib/site-packages/customtkinter;customtkinter/" \
     main.py
 
 # Export stage (use with --output=dist)
