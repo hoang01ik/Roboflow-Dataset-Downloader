@@ -113,12 +113,18 @@ class RoboflowApp(ctk.CTk):
         )
         self.label.pack(side="top", anchor="w")
         
+        status_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
+        status_frame.pack(side="top", anchor="w")
+        
+        self.status_dot = ctk.CTkLabel(status_frame, text="●", font=ctk.CTkFont(size=14), text_color="#555")
+        self.status_dot.pack(side="left", padx=(0, 5))
+        
         self.subtitle = ctk.CTkLabel(
-            header_frame, text="Dataset Acquisition System v2.8.0", 
+            status_frame, text="Dataset Acquisition System v2.9.0", 
             font=ctk.CTkFont(size=12),
             text_color=TEXT_MUTED
         )
-        self.subtitle.pack(side="top", anchor="w")
+        self.subtitle.pack(side="left")
 
     def _create_tabview(self):
         # Create Tabview as the main area
@@ -168,7 +174,9 @@ class RoboflowApp(ctk.CTk):
         self.load_btn = ctk.CTkButton(
             auth_frame, text="Connect & Sync Repository", 
             command=self._fetch_projects,
-            height=32, font=ctk.CTkFont(size=12, weight="bold")
+            height=32, font=ctk.CTkFont(size=12, weight="bold"),
+            border_width=1, border_color="#333",
+            hover_color="#34495e"
         )
         self.load_btn.pack(fill="x", padx=10, pady=(15, 0))
 
@@ -283,7 +291,7 @@ class RoboflowApp(ctk.CTk):
         
         about_text = (
             "TRAFFIC ROBOFLOW DOWNLOADER\n"
-            "Autonomous Data Module v2.7.2\n\n"
+            "Autonomous Data Module v2.9.0\n\n"
             "Designed for AI Traffic Systems.\n"
             "Engineered with CustomTkinter.\n\n"
             "© 2026 HPI AI Core."
@@ -334,6 +342,9 @@ class RoboflowApp(ctk.CTk):
             success, result = service.list_projects(workspace_id)
             if success:
                 self._save_config() # Save credentials on success
+                self.after(0, lambda: self.status_dot.configure(text_color=ACCENT_GREEN))
+            else:
+                self.after(0, lambda: self.status_dot.configure(text_color="#e74c3c"))
             self.after(0, lambda: self._update_projects_list(success, result))
         
         threading.Thread(target=run, daemon=True).start()
