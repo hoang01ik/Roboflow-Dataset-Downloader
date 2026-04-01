@@ -4,6 +4,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 from datetime import datetime
 from roboflow_service import RoboflowService
+from PIL import Image
 
 # UI Colors from DESIGN.md
 BG_COLOR = "#1a1c23"
@@ -76,6 +77,8 @@ class RoboflowApp(ctk.CTk):
     def _load_config(self):
         if os.path.exists(CONFIG_FILE):
             try:
+                if os.path.getsize(CONFIG_FILE) == 0:
+                    return # Silent return for empty files
                 with open(CONFIG_FILE, "r") as f:
                     data = json.load(f)
                     if "api_key" in data:
@@ -85,7 +88,7 @@ class RoboflowApp(ctk.CTk):
                         workspace_id = decrypt_data(data["workspace_id"])
                         self.workspace_entry.insert(0, workspace_id)
             except Exception as e:
-                self.update_log(f"Error loading credentials: {e}")
+                print(f"Error loading credentials: {e}")
 
     def _save_config(self):
         try:
@@ -112,6 +115,20 @@ class RoboflowApp(ctk.CTk):
             text_color=TEXT_PRIMARY
         )
         self.label.pack(side="top", anchor="w")
+        
+        # Load and display logo from assets/logo.png
+        logo_path = resource_path("assets/logo.png")
+        if os.path.exists(logo_path):
+            try:
+                self.logo_img = ctk.CTkImage(
+                    light_image=Image.open(logo_path),
+                    dark_image=Image.open(logo_path),
+                    size=(64, 64)
+                )
+                self.logo_label = ctk.CTkLabel(header_frame, image=self.logo_img, text="")
+                self.logo_label.pack(side="right", padx=10)
+            except Exception as e:
+                print(f"Error loading logo: {e}")
         
         status_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
         status_frame.pack(side="top", anchor="w")
